@@ -1,4 +1,28 @@
-from imports import *
+import sys
+import pickle
+import pandas as pd
+import os
+import gzip
+import shutil
+import nibabel as nib
+import numpy as np
+import pandas as pd
+from   category_encoders             import *
+from   sklearn.compose               import *
+from   sklearn.ensemble              import *
+from   sklearn.linear_model          import *
+from   sklearn.impute                import *
+from   sklearn.metrics               import *
+from   sklearn.pipeline              import *
+from   sklearn.preprocessing         import *
+from   sklearn.model_selection       import *
+from   sklearn.feature_selection     import *
+from   imblearn.over_sampling        import *
+from   sklearn.neural_network        import MLPClassifier
+from   sklearn.gaussian_process      import GaussianProcessClassifier
+from   sklearn.neighbors             import *
+from   sklearn.naive_bayes           import *
+import pickle
 
 
 class FilesWithMRI():
@@ -48,7 +72,16 @@ class DropRowsCog():
                     'DIGITSCOR_bl','TRABSCOR_bl','FAQ_bl', 'mPACCdigit_bl',
                     'mPACCtrailsB_bl','ADAS13', 'ADASQ4','RAVLT_immediate', 
                     'RAVLT_learning', 'RAVLT_forgetting', 'RAVLT_perc_forgetting', 
-                    'DIGITSCOR','TRABSCOR', 'FAQ', 'mPACCdigit', 'mPACCtrailsB']
+                    'DIGITSCOR','TRABSCOR', 'FAQ', 'mPACCdigit', 'mPACCtrailsB', 'MOCA', 'EcogPtMem',
+                    'EcogPtLang', 'EcogPtVisspat', 'EcogPtPlan', 'EcogPtOrgan',
+                    'EcogPtDivatt', 'EcogPtTotal', 'EcogSPMem', 'EcogSPLang',
+                    'EcogSPVisspat', 'EcogSPPlan', 'EcogSPOrgan', 'EcogSPDivatt',
+                    'EcogSPTotal', 'Ventricles_bl', 'Hippocampus_bl', 'WholeBrain_bl',
+                    'Entorhinal_bl', 'Fusiform_bl', 'MidTemp_bl', 'ICV_bl', 'MOCA_bl',
+                    'EcogPtMem_bl', 'EcogPtLang_bl', 'EcogPtVisspat_bl', 'EcogPtPlan_bl',
+                    'EcogPtOrgan_bl', 'EcogPtDivatt_bl', 'EcogPtTotal_bl', 'EcogSPMem_bl',
+                    'EcogSPLang_bl', 'EcogSPVisspat_bl', 'EcogSPPlan_bl', 'EcogSPOrgan_bl',
+                    'EcogSPDivatt_bl', 'EcogSPTotal_bl','FDG_bl', 'PIB_bl', 'AV45_bl']
         X = X.drop(columns = cog_cols)
         return X
 
@@ -95,7 +128,7 @@ class CorrectNaNs():
 
     def transform(self, X): 
       # filter out too many nans
-        X = X.loc[:, X.isnull().mean() < .80]
+        X = X.loc[:, X.isnull().mean() < .70]
         for col in X.select_dtypes([np.number]).columns:
             X[col].fillna(X[col].mean(), inplace = True)
         return X
@@ -110,14 +143,6 @@ class ChangeDTypes():
     def transform(self, X): 
       # filter out too many nans
         X = X.astype({'MMSE': int,
-                'Ventricles_bl': int,
-                'Hippocampus_bl': int,
-                'WholeBrain_bl': int,
-                'Entorhinal_bl': int,
-                'Fusiform_bl': int,
-                'MidTemp_bl': int,
-                'ICV_bl': int,
-                'months_from_base': int,
                 'M': int})
         return X
 
