@@ -17,7 +17,7 @@ from   sklearn.pipeline              import *
 from   sklearn.preprocessing         import *
 from   sklearn.model_selection       import *
 from   sklearn.feature_selection     import *
-from   imblearn.over_sampling        import *
+# from   imblearn.over_sampling        import *
 from   sklearn.neural_network        import MLPClassifier
 from   sklearn.gaussian_process      import GaussianProcessClassifier
 from   sklearn.neighbors             import *

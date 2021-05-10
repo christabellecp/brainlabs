@@ -12,6 +12,8 @@ from random import randint
 from volumentations import *
 import nibabel as nib
 import matplotlib.pyplot as plt
+import pickle
+
 
 class CogDataset3d(torch.utils.data.Dataset):
    
@@ -42,7 +44,10 @@ class CogDataset3d(torch.utils.data.Dataset):
         self.transform = transform
         self.crop = crop
         self.df = df
-
+        
+        
+        patient_files = pickle.load(open( "data/patient_files.data", "rb" ))
+        self.patient_files = list(set(map(lambda x: x[0], patient_files)))
         
         self.train_transforms = Compose([RandomCrop(shape = (128,128,128), always_apply=True),
                                         ElasticTransform((0, 0.20), interpolation=4, p=1),
@@ -59,8 +64,13 @@ class CogDataset3d(torch.utils.data.Dataset):
         
     def __getitem__(self, i):
         
-        inp = nib.load(self.input_dir + self.input[i]).get_fdata()
-        target = nib.load(self.target_dir + self.target[i]).get_fdata()
+        # grab the baseline images
+        X_tr_pid = list(map(lambda x: x[8:16], [self.input[i]]))
+        new_input = list(map(self.get_baseline_file, X_tr_pid))[0]
+        new_target = new_input.split('.nii')[0]+'_seg.nii'
+        
+        inp = nib.load(self.input_dir + new_input).get_fdata()
+        target = nib.load(self.target_dir + new_target).get_fdata()
         
         data = {'image': inp, 'mask': target}
         
@@ -77,15 +87,17 @@ class CogDataset3d(torch.utils.data.Dataset):
         
         #returning the cognitive score if true
         y_adas_score = None
-        y_mmse_score = None
         if a_score == True:
             y_adas_score = self.df[self.df['filenames'] == filename_df]['ADAS11'].values[0]
-            y_mmse_score = self.df[self.df['filenames'] == filename_df]['MMSE'].values[0]
             
         x, y_img = aug_data['image'], aug_data['mask']
         
-        return x[None,], y_img, y_adas_score, y_mmse_score, self.input[i].split('.nii')[0]
+        return x[None,], y_img, y_adas_score, self.input[i].split('.nii')[0]
     
+    def get_baseline_file(self, current_file):
+        for s in filter(lambda x: current_file in x, self.patient_files):
+            return s
+
             
 def visualize_slices(brain, start, stop, target=False, slice_type='sagittal'):
     """
